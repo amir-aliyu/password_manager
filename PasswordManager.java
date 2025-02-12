@@ -1,6 +1,5 @@
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
@@ -21,7 +20,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class PasswordManager {
 
-    public void createFile(String filename) {
+    public void createFile(String filename) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException {
         try {
             File file = new File(filename);
             Scanner s = new Scanner(System.in);
@@ -29,14 +28,18 @@ public class PasswordManager {
                 FileWriter writeToFile = new FileWriter("./" + filename);
                 System.out.print("Please enter an initial password:");
                 // create a key 
-                String keyString = s.nextLine();
+                String plaintextPassword = s.nextLine();
+                // encrypt the key string 
+                String encryptedMessage = encrypt(plaintextPassword);
                 System.out.print("File created: " + file.getName());
-                writeToFile.write("password: "+ keyString);
+                String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
+                writeToFile.write(saltString + ":" + encryptedMessage);
                 writeToFile.close();
             } else {
                 System.out.print("Please input the password to access the file:");
-                String keyString = s.nextLine();
+                // String keyString = s.nextLine();
             }
+            s.close();
         } catch (IOException e) {
             System.out.println("File error.");
         }
@@ -84,7 +87,7 @@ public class PasswordManager {
         return privateKey; 
     }
 
-    public void encrypt(String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException { 
+    public String encrypt(String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException { 
         
         SecretKeySpec key = getSecretKeySpec();
         // actually encrypt it 
@@ -95,7 +98,7 @@ public class PasswordManager {
 
         byte[] encryptedData = cipher.doFinal(message.getBytes());
         String messageString = new String(Base64.getEncoder().encode(encryptedData));
-        System.out.println(messageString);
+        return messageString;
 
     }
 
@@ -118,5 +121,6 @@ public class PasswordManager {
             System.exit(1);
         }
 
+        scanner.close();
     }
 }
