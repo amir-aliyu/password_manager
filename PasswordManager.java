@@ -30,7 +30,16 @@ public class PasswordManager {
             FileWriter writeToFile = null;
             Scanner s = new Scanner(System.in);
 
-            // setup for encryption / decryption 
+            // ENCRYPT
+            SecureRandom random = new SecureRandom();
+            byte[] salt = new byte[16];
+            random.nextBytes(salt);
+            String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
+            salt = Base64.getDecoder().decode(saltString.getBytes());
+    
+
+
+
 
             if (!file.exists()){ 
                 file.createNewFile(); 
@@ -39,11 +48,26 @@ public class PasswordManager {
                 // create a key 
                 String plaintextPassword = s.nextLine();
                 // encrypt the key string 
+                // salt, num iterations, key size
+                PBEKeySpec spec = new PBEKeySpec(plaintextPassword.toCharArray(), salt, 1024, 128);
+                SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+                SecretKey privateKey = factory.generateSecret(spec);
+        
+                // get bytes from key i just generated
+                SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");        
+                // actually encrypt it 
+                // createFile("test.txt");
+        
+                Cipher cipher = Cipher.getInstance("AES");
+                cipher.init(Cipher.ENCRYPT_MODE, key);
+        
+                byte[] encryptedData = cipher.doFinal(plaintextPassword.getBytes());
+                String messageString = new String(Base64.getEncoder().encode(encryptedData));
 
-                String encryptedMessage = encrypt(plaintextPassword);
+                // String encryptedMessage = encrypt(plaintextPassword);
+
                 System.out.print("File created: " + file.getName());
-                String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
-                writeToFile.write(saltString + ":" + encryptedMessage);
+                writeToFile.write(saltString + ":" + messageString);
                 writeToFile.close();
            
             } else {
@@ -60,22 +84,20 @@ public class PasswordManager {
                     System.out.println("second: "+ passwords[1]);
                     
                 }
-                String saltString = passwords[0];
+                // String saltString = passwords[0];
                 String encryptedFilePassword = passwords[1];
-                
                 
                 // String encryptedMessage = encrypt(plaintextPassword);
                 // String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
-        
-            
-                byte[] salt = Base64.getDecoder().decode(saltString.getBytes());
+                
+                // byte[] salt = Base64.getDecoder().decode(saltString.getBytes());
 
                 KeySpec spec = new PBEKeySpec(plaintextPassword.toCharArray(), salt, 1024, 128);
                 SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
                 SecretKey privateKey = factory.generateSecret(spec);
                 SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");
                 Cipher cipher = Cipher.getInstance("AES");  
-                cipher.init(Cipher.ENCRYPT_MODE, key);
+                cipher.init(Cipher.DECRYPT_MODE, key);
                 byte [] encryptedData = Base64.getDecoder().decode(encryptedFilePassword);
                 byte [] decryptedData = cipher.doFinal(encryptedData);
                 // String decryptedMessage = new String(decryptedData);
@@ -100,12 +122,31 @@ public class PasswordManager {
         String label= s.nextLine();
         System.out.print("Enter password to store: ");
         String password = s.nextLine();
+       
+        SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[16];
+        random.nextBytes(salt);
+        String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
+        salt = Base64.getDecoder().decode(saltString.getBytes());
+
+        // salt, num iterations, key size
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 1024, 128);
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        SecretKey privateKey = factory.generateSecret(spec);
+
+        // get bytes from key i just generated
+        SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");        
+        // actually encrypt it 
+        // createFile("test.txt");
+
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+
+        byte[] encryptedData = cipher.doFinal(password.getBytes());
+        String encryptedPassword = new String(Base64.getEncoder().encode(encryptedData));
         
-        // create a key 
-        // encrypt the key string 
-        String encryptedPassword = encrypt(password);
         FileWriter writeToFile = new FileWriter(file, true);
-        writeToFile.write("\nNEW" + label + ":" + encryptedPassword);
+        writeToFile.write("\n" + label + ":" + encryptedPassword);
         writeToFile.close();
 
     }
