@@ -76,13 +76,14 @@ public class PasswordManager {
                 // create a key 
                 String plaintextPassword = s.nextLine();
                 // encrypt the key string
-                String[] passwords = new String[2];
+                String[] passwords = new String[50];
                 Scanner scanFile = new Scanner(file);
                 while(scanFile.hasNext()) {
                     passwords = scanFile.nextLine().split(":");
-                    System.out.println("first: "+ passwords[0]);
-                    System.out.println("second: "+ passwords[1]);
                     
+                }
+                for(String password : passwords) {
+                    System.out.println(password);
                 }
                 // String saltString = passwords[0];
                 String encryptedFilePassword = passwords[1];
