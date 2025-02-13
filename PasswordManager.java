@@ -37,10 +37,6 @@ public class PasswordManager {
             String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
             salt = Base64.getDecoder().decode(saltString.getBytes());
     
-
-
-
-
             if (!file.exists()){ 
                 file.createNewFile(); 
                 writeToFile = new FileWriter(file, true);
@@ -82,16 +78,10 @@ public class PasswordManager {
                     passwords = scanFile.nextLine().split(":");
                     System.out.println("first: "+ passwords[0]);
                     System.out.println("second: "+ passwords[1]);
-                    
                 }
                 // String saltString = passwords[0];
                 String encryptedFilePassword = passwords[1];
                 
-                // String encryptedMessage = encrypt(plaintextPassword);
-                // String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
-                
-                // byte[] salt = Base64.getDecoder().decode(saltString.getBytes());
-
                 KeySpec spec = new PBEKeySpec(plaintextPassword.toCharArray(), salt, 1024, 128);
                 SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
                 SecretKey privateKey = factory.generateSecret(spec);
@@ -150,48 +140,6 @@ public class PasswordManager {
         writeToFile.close();
 
     }
-
-    // public SecretKeySpec getSecretKeySpec(String message) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
-    //     SecureRandom random = new SecureRandom();
-    //     byte[] salt = new byte[16];
-    //     random.nextBytes(salt);
-    //     String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
-    //     salt = Base64.getDecoder().decode(saltString.getBytes());
-
-    //     // Scanner scanner = new Scanner(System.in);
-    //     // System.out.print("Enter password: ");
-    //     // String keyString = scanner.nextLine();
-
-    //     // salt, num iterations, key size
-    //     PBEKeySpec spec = new PBEKeySpec(message.toCharArray(), salt, 1024, 128);
-    //     SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-    //     SecretKey privateKey = factory.generateSecret(spec);
-
-    //     // get bytes from key i just generated
-    //     SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");
-        
-    //     return key;
-
-    // }
-
-    // public SecretKey getPrivateKey() throws InvalidKeySpecException, NoSuchAlgorithmException {
-    //     SecureRandom random = new SecureRandom();
-    //     byte[] salt = new byte[16];
-    //     random.nextBytes(salt);
-    //     String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
-    //     salt = Base64.getDecoder().decode(saltString.getBytes());
-
-    //     Scanner scanner = new Scanner(System.in);
-    //     System.out.print("Enter password: ");
-    //     String keyString = scanner.nextLine();
-
-    //     // salt, num iterations, key size
-    //     PBEKeySpec spec = new PBEKeySpec(keyString.toCharArray(), salt, 1024, 128);
-    //     SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-    //     SecretKey privateKey = factory.generateSecret(spec);
-        
-    //     return privateKey; 
-    // }
 
     public String encrypt(String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException, IOException { 
         SecureRandom random = new SecureRandom();
