@@ -72,7 +72,7 @@ public class PasswordManager {
                 // create a key 
                 String plaintextPassword = s.nextLine();
                 // encrypt the key string
-                String[] passwords = new String[2];
+                String[] passwords = new String[50];
                 Scanner scanFile = new Scanner(file);
                 while(scanFile.hasNext()) {
                     passwords = scanFile.nextLine().split(":");
@@ -80,9 +80,10 @@ public class PasswordManager {
                     System.out.println("second: "+ passwords[1]);
                 }
                 // String saltString = passwords[0];
-                String encryptedFilePassword = passwords[1];
+                byte[] decodedSalt = Base64.getDecoder().decode(saltString);
+                String encryptedFilePassword = passwords[1];   
                 
-                KeySpec spec = new PBEKeySpec(plaintextPassword.toCharArray(), salt, 1024, 128);
+                KeySpec spec = new PBEKeySpec(plaintextPassword.toCharArray(), decodedSalt, 1024, 128);
                 SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
                 SecretKey privateKey = factory.generateSecret(spec);
                 SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");
@@ -141,31 +142,31 @@ public class PasswordManager {
 
     }
 
-    public String encrypt(String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException, IOException { 
-        SecureRandom random = new SecureRandom();
-        byte[] salt = new byte[16];
-        random.nextBytes(salt);
-        String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
-        salt = Base64.getDecoder().decode(saltString.getBytes());
+    // public String encrypt(String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException, IOException { 
+    //     SecureRandom random = new SecureRandom();
+    //     byte[] salt = new byte[16];
+    //     random.nextBytes(salt);
+    //     String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
+    //     salt = Base64.getDecoder().decode(saltString.getBytes());
 
-        // salt, num iterations, key size
-        PBEKeySpec spec = new PBEKeySpec(message.toCharArray(), salt, 1024, 128);
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        SecretKey privateKey = factory.generateSecret(spec);
+    //     // salt, num iterations, key size
+    //     PBEKeySpec spec = new PBEKeySpec(message.toCharArray(), salt, 1024, 128);
+    //     SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+    //     SecretKey privateKey = factory.generateSecret(spec);
 
-        // get bytes from key i just generated
-        SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");        
-        // actually encrypt it 
-        // createFile("test.txt");
+    //     // get bytes from key i just generated
+    //     SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");        
+    //     // actually encrypt it 
+    //     // createFile("test.txt");
 
-        Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.ENCRYPT_MODE, key);
+    //     Cipher cipher = Cipher.getInstance("AES");
+    //     cipher.init(Cipher.ENCRYPT_MODE, key);
 
-        byte[] encryptedData = cipher.doFinal(message.getBytes());
-        String messageString = new String(Base64.getEncoder().encode(encryptedData));
-        return messageString;
+    //     byte[] encryptedData = cipher.doFinal(message.getBytes());
+    //     String messageString = new String(Base64.getEncoder().encode(encryptedData));
+    //     return messageString;
 
-    }
+    // }
 
     public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
             IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, IOException {
