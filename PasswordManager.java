@@ -5,8 +5,10 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
 import java.util.Scanner;
-
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -73,19 +75,48 @@ public class PasswordManager {
                 String plaintextPassword = s.nextLine();
                 // encrypt the key string
                 String[] passwords = new String[50];
-                Scanner scanFile = new Scanner(file);
-                while(scanFile.hasNext()) {
-                    passwords = scanFile.nextLine().split(":");
-                    System.out.println("first: "+ passwords[0]);
-                    System.out.println("length: "+ passwords[0].length());
-                    System.out.println("second: "+ passwords[1]);
-                }
-                String finalString = passwords[0];
-                System.out.println("final string: "+finalString);
+                // Scanner scanFile = new Scanner(file);
+                // while(scanFile.hasNext()) {
+                //     passwords = scanFile.nextLine().split(":");
+                //     System.out.println("first: "+ passwords[0]);
+                //     System.out.println("length: "+ passwords[0].length());
+                //     System.out.println("second: "+ passwords[1]);
+                // }
 
-                for(int i = 0; i < passwords.length; i++) {
-                    System.out.println("index: "+ i + " word: "+ passwords[i]);
+            try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+                StringBuilder sb = new StringBuilder();
+                String line = br.readLine();
+            
+                while (line != null) {
+                    sb.append(line);
+                    sb.append(System.lineSeparator());
+                    line = br.readLine();
                 }
+                String everything = sb.toString();
+                System.out.println("everything: "+everything);
+                String[] pairs = everything.split("[:\\n]");
+                for (String pair : pairs) {
+                    System.out.println("pair: "+ pair);
+                }
+                // String[][] morePairs = null;
+                // for (int i = 0; i < pairs.length; i++) {
+                //     morePairs[i] = pairs[i].split(":");
+                //     System.out.println("morePairs "+ i + ": " + morePairs[i]);
+                // }
+   
+                // for (int i = 0; i < pairs.length(); i++) {
+
+                // }
+            }
+
+
+
+                // String finalString = passwords[0];
+                // System.out.println("final string: "+finalString);
+
+                // for(int i = 0; i < passwords.length; i++) {
+                //     System.out.println("index: "+ i + " word: "+ passwords[i]);
+                // }
 
                 String saltyString = passwords[1];
                 byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
