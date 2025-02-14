@@ -26,6 +26,8 @@ public class PasswordManager {
 
     int ADD_FLAG = 0;
     int READ_FLAG = 0;
+    String plaintextPassword;
+    SecretKeySpec key = null;
 
     public File createFile(String filename) throws Exception {
             File file = new File("./" + filename);
@@ -45,13 +47,13 @@ public class PasswordManager {
                 writeToFile = new FileWriter(file, true);
                 System.out.print("Please enter an initial password:");
                 // create a key 
-                String plaintextPassword = s.nextLine();
+                plaintextPassword = s.nextLine();
                 // encrypt the key string 
                 // salt, num iterations, key size
                 // Store generated salt in file
                 String saltString = Base64.getEncoder().encodeToString(salt); // Save the generated salt
                 System.out.println("generated salt string: "+ saltString);
-                SecretKeySpec key = generateAESKey(plaintextPassword, salt);
+                key = generateAESKey(plaintextPassword, salt);
                 System.out.println("Encryption Key: " + Base64.getEncoder().encodeToString(key.getEncoded()));
         
                 Cipher cipher = Cipher.getInstance("AES");
@@ -72,17 +74,9 @@ public class PasswordManager {
                 writeToFile = new FileWriter(file, true);
                 System.out.print("Please enter the password to access the file:");
                 // create a key 
-                String plaintextPassword = s.nextLine();
-                // encrypt the key string
-                // Scanner scanFile = new Scanner(file);
-                // while(scanFile.hasNext()) {
-                //     passwords = scanFile.nextLine().split(":");
-                //     System.out.println("first: "+ passwords[0]);
-                //     System.out.println("length: "+ passwords[0].length());
-                //     System.out.println("second: "+ passwords[1]);
-                // }
+                plaintextPassword = s.nextLine();
 
-            BufferedReader br = new BufferedReader(new FileReader(file));
+                BufferedReader br = new BufferedReader(new FileReader(file));
                 StringBuilder sb = new StringBuilder();
                 String line = br.readLine();
             
@@ -105,18 +99,15 @@ public class PasswordManager {
                 System.out.println("FINAL salt: "+ saltyString);
                 
                 byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
-                SecretKeySpec key = generateAESKey(plaintextPassword, decodedSalt);
-                // System.out.println("Encryption Key: " + Base64.getEncoder().encodeToString(key.getEncoded()));
+                key = generateAESKey(plaintextPassword, decodedSalt);
                 
                 Cipher cipher = Cipher.getInstance("AES");  
                 cipher.init(Cipher.DECRYPT_MODE, key);
 
                 byte [] encryptedData = Base64.getDecoder().decode(encryptedFilePassword);
                 byte [] decryptedData = cipher.doFinal(encryptedData); // decrypt the mf data
-                // System.out.println("Encryption Key: " + Base64.getEncoder().encodeToString(key.getEncoded()));
-               String decryptedMessage = new String(decryptedData);
+                String decryptedMessage = new String(decryptedData);
                 System.out.println("Decrypted message: " + decryptedMessage); 
-                // System.out.println("Message is " + decryptedMessage);
 
                 if (decryptedMessage.equals(plaintextPassword)) {
                     System.out.println(plaintextPassword + " matches "+ decryptedMessage);
@@ -145,22 +136,14 @@ public class PasswordManager {
         System.out.print("Enter password to store: ");
         String password = s.nextLine();
        
-        // SecureRandom random = new SecureRandom();
-        // byte[] salt = new byte[16];
-        // random.nextBytes(salt);
         String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
         byte[] salt = Base64.getDecoder().decode(saltString);
 
-        // salt, num iterations, key size
-        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 1024, 128);
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        SecretKey privateKey = factory.generateSecret(spec);
+        // PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 1024, 128);
+        // SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        // SecretKey privateKey = factory.generateSecret(spec);
 
-        // get bytes from key i just generated
-        SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");        
-        // actually encrypt it 
-        // createFile("test.txt");
-
+        // SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");        
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, key);
 
@@ -170,6 +153,57 @@ public class PasswordManager {
         FileWriter writeToFile = new FileWriter(file, true);
         writeToFile.write("\n" + label + ":" + encryptedPassword);
         writeToFile.close();
+
+    }
+
+    public void readPassword(File file) throws Exception {
+        Scanner s = new Scanner(System.in);
+        System.out.print("Enter label for password: ");
+        String label= s.nextLine();
+        
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        StringBuilder sb = new StringBuilder();
+        String line = br.readLine();
+    
+        while (line != null) {
+            sb.append(line);
+            sb.append(System.lineSeparator());
+            line = br.readLine();
+        }
+        String encryptedPassword = null;
+        String everything = sb.toString();
+        System.out.println("everything: "+everything);
+        String[] pairs = everything.split("[:\\n]");
+        for (int i = 0; i < pairs.length; i++) {
+            pairs[i] = pairs[i].trim();
+            if (pairs[i].equals(label)) {
+                encryptedPassword = pairs[i+1];
+                System.out.println("Found: "+ pairs[i+1]);
+            }
+        }
+        if (encryptedPassword == null) {
+            System.err.println("No password found for that label");
+        } 
+
+        // String saltyString = pairs[0];
+        // byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
+        // System.out.println("FINAL salt: "+ saltyString);
+        
+        // byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
+        System.out.println("plaintext password: "+plaintextPassword);
+        // SecretKeySpec key = generateAESKey(plaintextPassword, decodedSalt);
+        
+        Cipher cipher = Cipher.getInstance("AES");  
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        System.out.println("encrypted password: "+encryptedPassword);
+        byte [] encryptedData = Base64.getDecoder().decode(encryptedPassword);
+        byte [] decryptedData = cipher.doFinal(encryptedData); // decrypt the mf data
+        String decryptedMessage = new String(decryptedData);
+        System.out.println("Decrypted message: " + decryptedMessage); 
+
+        // decrypt encryptedPassword 
+
+
 
     }
 
@@ -188,6 +222,7 @@ public class PasswordManager {
             manager.storePassword(file);
         
         } else if (option.equals("r")) {
+            manager.readPassword(file);
             System.out.print("Enter label for password: ");
             // manager.encrypt(scanner.nextLine());
         } else if (option.equals("q")) {
