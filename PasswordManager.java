@@ -80,9 +80,17 @@ public class PasswordManager {
                     System.out.println("length: "+ passwords[0].length());
                     System.out.println("second: "+ passwords[1]);
                 }
-                // String saltString = passwords[0];
-                byte[] decodedSalt = Base64.getDecoder().decode(saltString);
-                String encryptedFilePassword = passwords[1];   
+                String finalString = passwords[0];
+                System.out.println("final string: "+finalString);
+
+                for(int i = 0; i < passwords.length; i++) {
+                    System.out.println("index: "+ i + " word: "+ passwords[i]);
+                }
+
+                String saltyString = passwords[1];
+                byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
+                String encryptedFilePassword = passwords[0];   
+                System.out.println("FINAL salt: "+ saltyString);
                 
                 KeySpec spec = new PBEKeySpec(plaintextPassword.toCharArray(), decodedSalt, 1024, 128);
                 SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
