@@ -28,6 +28,7 @@ public class PasswordManager {
     int READ_FLAG = 0;
     String plaintextPassword;
     SecretKeySpec key = null;
+    String saltString;
 
     public File createFile(String filename) throws Exception {
             File file = new File("./" + filename);
@@ -51,7 +52,7 @@ public class PasswordManager {
                 // encrypt the key string 
                 // salt, num iterations, key size
                 // Store generated salt in file
-                String saltString = Base64.getEncoder().encodeToString(salt); // Save the generated salt
+                saltString = Base64.getEncoder().encodeToString(salt); // Save the generated salt
                 System.out.println("generated salt string: "+ saltString);
                 key = generateAESKey(plaintextPassword, salt);
                 System.out.println("Encryption Key: " + Base64.getEncoder().encodeToString(key.getEncoded()));
@@ -93,12 +94,12 @@ public class PasswordManager {
                     System.out.println("pair: "+ pair);
                 }
                 
-                String saltyString = pairs[0];
+                saltString = pairs[0];
                 // byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
                 String encryptedFilePassword = pairs[1];   
-                System.out.println("FINAL salt: "+ saltyString);
+                System.out.println("FINAL salt: "+ saltString);
                 
-                byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
+                byte[] decodedSalt = Base64.getDecoder().decode(saltString.getBytes());
                 key = generateAESKey(plaintextPassword, decodedSalt);
                 
                 Cipher cipher = Cipher.getInstance("AES");  
@@ -136,9 +137,6 @@ public class PasswordManager {
         System.out.print("Enter password to store: ");
         String password = s.nextLine();
        
-        String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
-        byte[] salt = Base64.getDecoder().decode(saltString);
-
         // PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 1024, 128);
         // SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         // SecretKey privateKey = factory.generateSecret(spec);
@@ -185,13 +183,7 @@ public class PasswordManager {
             System.err.println("No password found for that label");
         } 
 
-        // String saltyString = pairs[0];
-        // byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
-        // System.out.println("FINAL salt: "+ saltyString);
-        
-        // byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
         System.out.println("plaintext password: "+plaintextPassword);
-        // SecretKeySpec key = generateAESKey(plaintextPassword, decodedSalt);
         
         Cipher cipher = Cipher.getInstance("AES");  
         cipher.init(Cipher.DECRYPT_MODE, key);
@@ -223,7 +215,6 @@ public class PasswordManager {
         
         } else if (option.equals("r")) {
             manager.readPassword(file);
-            System.out.print("Enter label for password: ");
             // manager.encrypt(scanner.nextLine());
         } else if (option.equals("q")) {
             System.exit(0);
