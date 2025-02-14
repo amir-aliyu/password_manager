@@ -27,17 +27,18 @@ public class PasswordManager {
     int ADD_FLAG = 0;
     int READ_FLAG = 0;
 
-    public File createFile(String filename) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException, IOException {
+    public File createFile(String filename) throws Exception {
             File file = new File("./" + filename);
             FileWriter writeToFile = null;
             Scanner s = new Scanner(System.in);
+            // SecretKeySpec key = null;
 
             // ENCRYPT
             SecureRandom random = new SecureRandom();
             byte[] salt = new byte[16];
             random.nextBytes(salt);
-            String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
-            salt = Base64.getDecoder().decode(saltString.getBytes());
+            // String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
+            // salt = Base64.getDecoder().decode(saltString.getBytes());
     
             if (!file.exists()){ 
                 file.createNewFile(); 
@@ -47,20 +48,19 @@ public class PasswordManager {
                 String plaintextPassword = s.nextLine();
                 // encrypt the key string 
                 // salt, num iterations, key size
-                PBEKeySpec spec = new PBEKeySpec(plaintextPassword.toCharArray(), salt, 1024, 128);
-                SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-                SecretKey privateKey = factory.generateSecret(spec);
-        
-                // get bytes from key i just generated
-                SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");        
-                // actually encrypt it 
-                // createFile("test.txt");
+                // Store generated salt in file
+                String saltString = Base64.getEncoder().encodeToString(salt); // Save the generated salt
+                System.out.println("generated salt string: "+ saltString);
+                SecretKeySpec key = generateAESKey(plaintextPassword, salt);
+                System.out.println("Encryption Key: " + Base64.getEncoder().encodeToString(key.getEncoded()));
         
                 Cipher cipher = Cipher.getInstance("AES");
                 cipher.init(Cipher.ENCRYPT_MODE, key);
-        
+       
+                // to encrypt, get bytes
                 byte[] encryptedData = cipher.doFinal(plaintextPassword.getBytes());
                 String messageString = new String(Base64.getEncoder().encode(encryptedData));
+                System.out.println("Encryption Key: " + Base64.getEncoder().encodeToString(key.getEncoded()));
 
                 // String encryptedMessage = encrypt(plaintextPassword);
 
@@ -74,7 +74,6 @@ public class PasswordManager {
                 // create a key 
                 String plaintextPassword = s.nextLine();
                 // encrypt the key string
-                String[] passwords = new String[50];
                 // Scanner scanFile = new Scanner(file);
                 // while(scanFile.hasNext()) {
                 //     passwords = scanFile.nextLine().split(":");
@@ -83,7 +82,7 @@ public class PasswordManager {
                 //     System.out.println("second: "+ passwords[1]);
                 // }
 
-            try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+            BufferedReader br = new BufferedReader(new FileReader(file));
                 StringBuilder sb = new StringBuilder();
                 String line = br.readLine();
             
@@ -96,42 +95,25 @@ public class PasswordManager {
                 System.out.println("everything: "+everything);
                 String[] pairs = everything.split("[:\\n]");
                 for (String pair : pairs) {
+                    pair = pair.trim();
                     System.out.println("pair: "+ pair);
                 }
-                // String[][] morePairs = null;
-                // for (int i = 0; i < pairs.length; i++) {
-                //     morePairs[i] = pairs[i].split(":");
-                //     System.out.println("morePairs "+ i + ": " + morePairs[i]);
-                // }
-   
-                // for (int i = 0; i < pairs.length(); i++) {
-
-                // }
-            }
-
-
-
-                // String finalString = passwords[0];
-                // System.out.println("final string: "+finalString);
-
-                // for(int i = 0; i < passwords.length; i++) {
-                //     System.out.println("index: "+ i + " word: "+ passwords[i]);
-                // }
-
-                String saltyString = passwords[1];
-                byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
-                String encryptedFilePassword = passwords[0];   
+                
+                String saltyString = pairs[0];
+                // byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
+                String encryptedFilePassword = pairs[1];   
                 System.out.println("FINAL salt: "+ saltyString);
                 
-                KeySpec spec = new PBEKeySpec(plaintextPassword.toCharArray(), decodedSalt, 1024, 128);
-                SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-                SecretKey privateKey = factory.generateSecret(spec);
-                SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");
+                byte[] decodedSalt = Base64.getDecoder().decode(saltyString);
+                SecretKeySpec key = generateAESKey(plaintextPassword, decodedSalt);
+                // System.out.println("Encryption Key: " + Base64.getEncoder().encodeToString(key.getEncoded()));
+                
                 Cipher cipher = Cipher.getInstance("AES");  
                 cipher.init(Cipher.DECRYPT_MODE, key);
+
                 byte [] encryptedData = Base64.getDecoder().decode(encryptedFilePassword);
-                byte [] decryptedData = cipher.doFinal(encryptedData);
-                // String decryptedMessage = new String(decryptedData);
+                byte [] decryptedData = cipher.doFinal(encryptedData); // decrypt the mf data
+                // System.out.println("Encryption Key: " + Base64.getEncoder().encodeToString(key.getEncoded()));
                String decryptedMessage = new String(decryptedData);
                 System.out.println("Decrypted message: " + decryptedMessage); 
                 // System.out.println("Message is " + decryptedMessage);
@@ -147,6 +129,15 @@ public class PasswordManager {
             // s.close();
     }
 
+    private SecretKeySpec generateAESKey(String password, byte[] salt) throws Exception {
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 1024, 128);
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        SecretKey secret = factory.generateSecret(spec);
+        
+        return new SecretKeySpec(secret.getEncoded(), "AES");
+    }
+
+
     public void storePassword(File file) throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException {
         Scanner s = new Scanner(System.in);
         System.out.print("Enter label for password: ");
@@ -154,11 +145,11 @@ public class PasswordManager {
         System.out.print("Enter password to store: ");
         String password = s.nextLine();
        
-        SecureRandom random = new SecureRandom();
-        byte[] salt = new byte[16];
-        random.nextBytes(salt);
+        // SecureRandom random = new SecureRandom();
+        // byte[] salt = new byte[16];
+        // random.nextBytes(salt);
         String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
-        salt = Base64.getDecoder().decode(saltString.getBytes());
+        byte[] salt = Base64.getDecoder().decode(saltString);
 
         // salt, num iterations, key size
         PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 1024, 128);
@@ -183,8 +174,7 @@ public class PasswordManager {
     }
 
 
-    public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
-            IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, IOException {
+    public static void main(String[] args) throws Exception {
 
         PasswordManager manager = new PasswordManager();
         Scanner scanner = new Scanner(System.in);
