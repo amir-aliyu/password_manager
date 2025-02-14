@@ -77,6 +77,7 @@ public class PasswordManager {
                 while(scanFile.hasNext()) {
                     passwords = scanFile.nextLine().split(":");
                     System.out.println("first: "+ passwords[0]);
+                    System.out.println("length: "+ passwords[0].length());
                     System.out.println("second: "+ passwords[1]);
                 }
                 // String saltString = passwords[0];
@@ -142,31 +143,6 @@ public class PasswordManager {
 
     }
 
-    // public String encrypt(String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException, IOException { 
-    //     SecureRandom random = new SecureRandom();
-    //     byte[] salt = new byte[16];
-    //     random.nextBytes(salt);
-    //     String saltString = "1B9Wx/oPXyg5ufgmV/lLoQ==";
-    //     salt = Base64.getDecoder().decode(saltString.getBytes());
-
-    //     // salt, num iterations, key size
-    //     PBEKeySpec spec = new PBEKeySpec(message.toCharArray(), salt, 1024, 128);
-    //     SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-    //     SecretKey privateKey = factory.generateSecret(spec);
-
-    //     // get bytes from key i just generated
-    //     SecretKeySpec key = new SecretKeySpec(privateKey.getEncoded(), "AES");        
-    //     // actually encrypt it 
-    //     // createFile("test.txt");
-
-    //     Cipher cipher = Cipher.getInstance("AES");
-    //     cipher.init(Cipher.ENCRYPT_MODE, key);
-
-    //     byte[] encryptedData = cipher.doFinal(message.getBytes());
-    //     String messageString = new String(Base64.getEncoder().encode(encryptedData));
-    //     return messageString;
-
-    // }
 
     public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
             IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, IOException {
